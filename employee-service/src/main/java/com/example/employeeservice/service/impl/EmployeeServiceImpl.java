@@ -1,5 +1,6 @@
 package com.example.employeeservice.service.impl;
 
+import com.example.employeeservice.controller.APIClient;
 import com.example.employeeservice.dto.APIResponseDto;
 import com.example.employeeservice.dto.DepartmentDto;
 import com.example.employeeservice.dto.EmployeeDto;
@@ -25,7 +26,7 @@ public class EmployeeServiceImpl implements EmployeeService {
     private EmployeeRepository employeeRepository;
 
     @Autowired
-    private WebClient webClient;
+    private APIClient apiClient;
 
     @Override
     public EmployeeDto saveEmployee(EmployeeDto employeeDto) {
@@ -55,11 +56,7 @@ public class EmployeeServiceImpl implements EmployeeService {
     public APIResponseDto getEmployeeById(Long id) {
         Employee employee = employeeRepository.findById(id).get();
 
-        DepartmentDto departmentDto = webClient.get()
-                .uri("http://localhost:8080/api/departments/" + employee.getDepartmentCode())
-                .retrieve()
-                .bodyToMono(DepartmentDto.class)
-                .block();
+        DepartmentDto departmentDto = apiClient.getDepartmentByCode(employee.getDepartmentCode());
 
         EmployeeDto employeeDto = new EmployeeDto();
         employeeDto.setId(employee.getId());
