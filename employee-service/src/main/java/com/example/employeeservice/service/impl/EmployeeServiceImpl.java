@@ -1,11 +1,15 @@
 package com.example.employeeservice.service.impl;
 
+import com.example.employeeservice.dto.APIResponseDto;
+import com.example.employeeservice.dto.DepartmentDto;
 import com.example.employeeservice.dto.EmployeeDto;
 import com.example.employeeservice.entity.Employee;
 import com.example.employeeservice.repository.EmployeeRepository;
 import com.example.employeeservice.service.EmployeeService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
 import javax.transaction.Transactional;
 import javax.xml.bind.ValidationException;
@@ -18,6 +22,9 @@ public class EmployeeServiceImpl implements EmployeeService {
 
     @Autowired
     private EmployeeRepository employeeRepository;
+
+    @Autowired
+    private RestTemplate restTemplate;
 
     @Override
     public EmployeeDto saveEmployee(EmployeeDto employeeDto) {
@@ -44,15 +51,23 @@ public class EmployeeServiceImpl implements EmployeeService {
     }
 
     @Override
-    public EmployeeDto getEmployeeById(Long id) {
+    public APIResponseDto getEmployeeById(Long id) {
         Employee employee = employeeRepository.findById(id).get();
-        return EmployeeDto.builder()
-                .id(employee.getId())
-                .firstName(employee.getEmail())
-                .lastName(employee.getLastName())
-                .email(employee.getEmail())
-                .departmentCode(employee.getDepartmentCode())
-                .organizationCode(employee.getOrganizationCode())
-                .build();
+
+        ResponseEntity<DepartmentDto> responseEntity = restTemplate.getForEntity("http://localhost:8080/api/departments/" + employee.getDepartmentCode(), DepartmentDto.class);
+        DepartmentDto departmentDto = responseEntity.getBody();
+
+        EmployeeDto employeeDto = new EmployeeDto();
+        employeeDto.setId(employee.getId());
+        employeeDto.setEmail(employee.getEmail());
+        employeeDto.setFirstName(employee.getFirstName());
+        employeeDto.setLastName(employee.getLastName());
+        employeeDto.setDepartmentCode(employee.getDepartmentCode());
+        employeeDto.setOrganizationCode(employee.getOrganizationCode());
+
+        APIResponseDto apiResponseDto = new APIResponseDto();
+        apiResponseDto.setEmployeeDto(employeeDto);
+        apiResponseDto.setDepartmentDto(departmentDto);
+    return apiResponseDto;
     }
 }
