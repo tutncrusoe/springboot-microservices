@@ -1,6 +1,6 @@
 package com.example.employeeservice.service.impl;
 
-import com.example.employeeservice.controller.APIClient;
+import com.example.employeeservice.client.APIClient;
 import com.example.employeeservice.dto.APIResponseDto;
 import com.example.employeeservice.dto.DepartmentDto;
 import com.example.employeeservice.dto.EmployeeDto;
@@ -8,15 +8,9 @@ import com.example.employeeservice.entity.Employee;
 import com.example.employeeservice.repository.EmployeeRepository;
 import com.example.employeeservice.service.EmployeeService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
-import org.springframework.web.reactive.function.client.WebClient;
 
 import javax.transaction.Transactional;
-import javax.xml.bind.ValidationException;
-import java.util.Objects;
-import java.util.Optional;
 
 @Service
 @Transactional
