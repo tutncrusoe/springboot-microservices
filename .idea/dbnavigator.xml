@@ -13,7 +13,9 @@
   </component>
   <component name="DBNavigator.Project.DatabaseConsoleManager">
     <connection id="9abea3cd-be22-4a1c-b884-7f3f56edfb92">
-      <console name="Connection" type="STANDARD" schema="mysql" session="Main"><![CDATA[CREATE DATABASE employee_db;]]></console>
+      <console name="Connection" type="STANDARD" schema="mysql" session="Main"><![CDATA[select * from department_db.departments
+
+insert into department_db.departments(department_code, department_description, department_name) values(3,3,3)]]></console>
     </connection>
   </component>
   <component name="DBNavigator.Project.DatabaseEditorStateManager">
