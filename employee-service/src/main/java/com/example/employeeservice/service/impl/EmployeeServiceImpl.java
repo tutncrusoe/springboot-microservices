@@ -8,7 +8,10 @@ import com.example.employeeservice.entity.Employee;
 import com.example.employeeservice.repository.EmployeeRepository;
 import com.example.employeeservice.service.EmployeeService;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import io.github.resilience4j.retry.annotation.Retry;
 import org.jetbrains.annotations.NotNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -27,6 +30,9 @@ public class EmployeeServiceImpl implements EmployeeService {
 
     @Autowired
     private WebClient webClient;
+
+    @Autowired
+    private static final Logger LOGGER = LoggerFactory.getLogger(EmployeeServiceImpl.class);
 
     @Override
     public EmployeeDto saveEmployee(EmployeeDto employeeDto) {
@@ -52,9 +58,12 @@ public class EmployeeServiceImpl implements EmployeeService {
                 .build();
     }
 
-    @CircuitBreaker(name = "{spring.application.name}", fallbackMethod = "getDefaultDepartment")
+    //    @CircuitBreaker(name = "{spring.application.name}", fallbackMethod = "getDefaultDepartment")
+    @Retry(name = "{spring.application.name}", fallbackMethod = "getDefaultDepartment")
     @Override
     public APIResponseDto getEmployeeById(Long id) {
+
+        LOGGER.info("inside getEmployeeById() method");
         Employee employee = employeeRepository.findById(id).get();
 
 //        DepartmentDto departmentDto = apiClient.getDepartmentByCode(employee.getDepartmentCode());
@@ -70,13 +79,15 @@ public class EmployeeServiceImpl implements EmployeeService {
     }
 
     private APIResponseDto getDefaultDepartment(Long id, Exception exception) {
+
+        LOGGER.info("inside getDefaultDepartment() method");
         Employee employee = employeeRepository.findById(id).get();
 
         DepartmentDto departmentDto = new DepartmentDto();
         departmentDto.setId(1L);
-        departmentDto.setDepartmentCode("1");
-        departmentDto.setDepartmentName("1");
-        departmentDto.setDepartmentDescription("1");
+        departmentDto.setDepartmentCode("default");
+        departmentDto.setDepartmentName("default");
+        departmentDto.setDepartmentDescription("default");
 
         return getApiResponseDto(employee, departmentDto);
     }
