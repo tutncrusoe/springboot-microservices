@@ -7,8 +7,11 @@ import com.example.employeeservice.dto.EmployeeDto;
 import com.example.employeeservice.entity.Employee;
 import com.example.employeeservice.repository.EmployeeRepository;
 import com.example.employeeservice.service.EmployeeService;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.reactive.function.client.WebClient;
 
 import javax.transaction.Transactional;
 
@@ -21,6 +24,9 @@ public class EmployeeServiceImpl implements EmployeeService {
 
     @Autowired
     private APIClient apiClient;
+
+    @Autowired
+    private WebClient webClient;
 
     @Override
     public EmployeeDto saveEmployee(EmployeeDto employeeDto) {
@@ -46,12 +52,37 @@ public class EmployeeServiceImpl implements EmployeeService {
                 .build();
     }
 
+    @CircuitBreaker(name = "{spring.application.name}", fallbackMethod = "getDefaultDepartment")
     @Override
     public APIResponseDto getEmployeeById(Long id) {
         Employee employee = employeeRepository.findById(id).get();
 
-        DepartmentDto departmentDto = apiClient.getDepartmentByCode(employee.getDepartmentCode());
+//        DepartmentDto departmentDto = apiClient.getDepartmentByCode(employee.getDepartmentCode());
 
+        DepartmentDto departmentDto = webClient
+                .get()
+                .uri("http://localhost:8080/api/departments/" + employee.getDepartmentCode())
+                .retrieve()
+                .bodyToMono(DepartmentDto.class)
+                .block();
+
+        return getApiResponseDto(employee, departmentDto);
+    }
+
+    private APIResponseDto getDefaultDepartment(Long id, Exception exception) {
+        Employee employee = employeeRepository.findById(id).get();
+
+        DepartmentDto departmentDto = new DepartmentDto();
+        departmentDto.setId(1L);
+        departmentDto.setDepartmentCode("1");
+        departmentDto.setDepartmentName("1");
+        departmentDto.setDepartmentDescription("1");
+
+        return getApiResponseDto(employee, departmentDto);
+    }
+
+    @NotNull
+    private static APIResponseDto getApiResponseDto(Employee employee, DepartmentDto departmentDto) {
         EmployeeDto employeeDto = new EmployeeDto();
         employeeDto.setId(employee.getId());
         employeeDto.setEmail(employee.getEmail());
